@@ -1,4 +1,4 @@
-import { action, when, reduce } from '../../src/state/actions'
+import { action, when, reduce, produce } from '../../src/state/actions'
 
 it('creates an empty action creator', () => {
   const creator = action()
@@ -53,4 +53,19 @@ it('creates an action creator with an action reducer', () => {
   expect(newState).toEqual({
     amount: 10,
   })
+})
+
+it('can attaches effects on an action', () => {
+  const creator = action(
+    when('something'),
+    produce(() => 'effect'),
+  )
+
+  expect(creator.effects?.length).toBe(1)
+
+  const ef = creator.effects?.[0]
+
+  if (!ef) return
+
+  expect(ef()).toEqual('effect')
 })
