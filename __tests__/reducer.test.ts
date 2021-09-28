@@ -110,11 +110,7 @@ it('can remove a module from a state collector', () => {
     createActionContainerCollector([Counter]),
   )
 
-  const startAction = {
-    name: Symbol('@start'),
-    payload: Counter,
-  }
-  const firstState = rootReducer(startAction)(state)
+  const firstState = initModuleReducer(Counter)(state)
   const finalState: StateCollector = removeModule(Counter, firstState)
 
   expect(finalState[Counter.name]).not.toBeDefined()
