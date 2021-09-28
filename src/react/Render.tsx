@@ -22,7 +22,6 @@ export const Render = ({
 }: RenderProps) => {
   const [initialized, setInitialized] = useState<boolean>(false)
   const [moduleState, setModuleState] = useState<typeof state.state>(state.state)
-  const [generatedId, setGeneratedId] = useState(Symbol('id'))
   const store = useStore()
 
   useEffect(() => {
