@@ -1,5 +1,5 @@
-import React from 'react';
-import { action, reduce, selector, ViewComponent, when } from '../../src';
+import React from 'react'
+import { action, reduce, selector, ViewComponent, when } from '../../src'
 
 export const name = Symbol('counter')
 
