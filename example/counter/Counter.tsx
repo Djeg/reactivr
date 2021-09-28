@@ -1,5 +1,5 @@
 import React from 'react'
-import { action, reduce, ViewComponent, when, useActionEvent } from '../../src/index'
+import { action, reduce, ViewComponent, when } from '../../src/index'
 
 export const name = Symbol('counter')
 
@@ -26,7 +26,7 @@ export const decrement = action(
 export const View: ViewComponent<{}, typeof state> = ({ amount }) => (
   <div className="counter">
     <p>Counter : <span className="counter-amount">{amount}</span></p>
-    <button className="counter-increment" onClick={useActionEvent(increment())}>+</button>
-    <button className="counter-decrement" onClick={useActionEvent(decrement())}>-</button>
+    <button className="counter-increment">+</button>
+    <button className="counter-decrement">-</button>
   </div>
 )
