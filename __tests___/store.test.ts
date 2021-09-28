@@ -14,7 +14,7 @@ it('can build a set of modules into a state', () => {
 })
 
 it('can start and store a module easily', () => {
-  store.startModule(Counter, 'test')
+  store.initModule(Counter, 'test')
 
   expect(store.getState()).toEqual({
     [Counter.name]: {
@@ -22,7 +22,7 @@ it('can start and store a module easily', () => {
     },
   })
 
-  store.stopModule(Counter, 'test')
+  store.destroyModule(Counter, 'test')
 
   expect(store.getState()).toEqual({
     [Counter.name]: {},
@@ -30,7 +30,7 @@ it('can start and store a module easily', () => {
 })
 
 it('can dispatch any action', () => {
-  store.startModule(Counter)
+  store.initModule(Counter)
   store.dispatch(Counter.increment())
 
   expect(store.getState()).toEqual({

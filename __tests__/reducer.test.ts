@@ -2,10 +2,10 @@ import * as Counter from '../example/counter/Counter'
 import { mergeStates, removeModule } from '../src/reducer'
 import { StateCollector } from '../src/types'
 import {
-  stopModuleReducer,
+  destroyModuleReducer,
   createActionContainerCollector,
   initRootState,
-  startModuleReducer,
+  initModuleReducer,
   createRootReducer,
 } from '../src/reducer'
 
@@ -15,18 +15,10 @@ it('creates a root reducer', () => {
     createActionContainerCollector([Counter]),
   )
 
-  const startAction = {
-    name: Symbol('@start'),
-    payload: Counter,
-  }
-  const stopAction = {
-    name: Symbol('@stop'),
-    payload: Counter,
-  }
-  const firstState = rootReducer(startAction)(state)
+  const firstState = initModuleReducer(Counter)(state)
   const secondState = rootReducer(Counter.increment())(firstState)
   const thirdState = rootReducer(Counter.decrement())(secondState)
-  const lastState = rootReducer(stopAction)(thirdState)
+  const lastState = destroyModuleReducer(Counter)(thirdState)
 
   expect(firstState).toEqual({
     [Counter.name]: {
@@ -51,23 +43,11 @@ it('creates a root reducer', () => {
 it('creates the start and stop reducer', () => {
   let state = initRootState([Counter])
 
-  let startAction = {
-    name: Symbol('@start'),
-    payload: Counter,
-    id: '@test',
-  }
-
-  let stopAction = {
-    name: Symbol('@stop'),
-    payload: Counter,
-    id: '@test',
-  }
-
-  let secondState = startModuleReducer(startAction)(state)
+  let secondState = initModuleReducer<any>(Counter, '@test')(state)
 
   expect(secondState[Counter.name]['@test']).toEqual(Counter.state)
 
-  let thirdState = stopModuleReducer(stopAction)(secondState)
+  let thirdState = destroyModuleReducer<any>(Counter, '@test')(secondState)
 
   expect(thirdState).not.toEqual(secondState)
   expect(thirdState[Counter.name]).toEqual({})
@@ -87,16 +67,6 @@ it('creates an action container collector on top of a module', () => {
   expect(collector[Counter.decrement.actionUniqName]).toBe(Counter.decrement)
   expect(collector[Counter.increment.actionUniqName]).toBeDefined()
   expect(collector[Counter.increment.actionUniqName]).toBe(Counter.increment)
-
-  let [start, stop] = Object.getOwnPropertySymbols(collector)
-    .filter(k => /(\(@start\)|\(@stop\))/.test(k.toString()))
-    .map(k => collector[k])
-
-  expect(start).toBeDefined()
-  expect(stop).toBeDefined()
-
-  expect(start.module).toEqual(Counter)
-  expect(stop.module).toEqual(Counter)
 })
 
 it('can merge deeply two objects between them', () => {

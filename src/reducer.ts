@@ -1,4 +1,4 @@
-import { action, when } from './actions'
+import { DEFAULT_ID } from './actions'
 import {
   Action,
   ActionContainer,
@@ -18,21 +18,13 @@ export function createRootReducer<
   const reducer: GlobalReducer<S, A> = action => state => {
     let container = actions[action.name]
 
-    if (action.name.toString() === Symbol('@start').toString()) {
-      return startModuleReducer(action)(state)
-    }
-
-    if (action.name.toString() === Symbol('@stop').toString()) {
-      return stopModuleReducer(action)(state)
-    }
-
     if (!container) return state
 
     if (!container.module) return state
 
     if (!container.module.name) return state
 
-    let actionId = action.id ?? '@default'
+    let actionId = action.id ?? DEFAULT_ID
     let stateContainer = state[container.module.name] ?? {}
     let statePart = stateContainer[actionId]
 
@@ -61,37 +53,35 @@ export function createRootReducer<
 }
 
 /**
- * Start a given reactive module
+ * Initialize a given reactive module
  */
-export const startModuleReducer: GlobalReducer<
-  any,
-  Action<ReactiveModule<any, any, any>>
-> = action => state => {
-  let newState = { ...state }
+export const initModuleReducer =
+  <S extends {} = {}>(mod: ReactiveModule<any, any, any>, id?: string) =>
+  (state: S) => {
+    let newState: any = { ...state }
 
-  newState[action.payload.name] = {
-    ...(newState[action.payload.name] || {}),
-    [action.id ?? '@default']: action.payload.state,
+    newState[mod.name] = {
+      ...(newState[mod.name] || {}),
+      [id ?? DEFAULT_ID]: mod.state,
+    }
+
+    return newState as S
   }
 
-  return newState
-}
-
 /**
- * Stop a given reactive module
+ * Destroy a given reactive module
  */
-export const stopModuleReducer: GlobalReducer<
-  any,
-  Action<ReactiveModule<any, any, any>>
-> = action => state => {
-  let newState = { ...state }
+export const destroyModuleReducer =
+  <S extends {} = {}>(mod: ReactiveModule<any, any, any>, id?: string) =>
+  (state: S) => {
+    let newState: any = { ...state }
 
-  newState[action.payload.name] = Object.entries(newState[action.payload.name])
-    .filter(([name]) => name !== (action.id ?? '@default'))
-    .reduce((acc, [name, v]) => ({ ...acc, [name]: v }), {})
+    newState[mod.name] = Object.entries(newState[mod.name])
+      .filter(([name]) => name !== (id ?? DEFAULT_ID))
+      .reduce((acc, [name, v]) => ({ ...acc, [name]: v }), {})
 
-  return newState
-}
+    return newState as S
+  }
 
 /**
  * Initialize a root state on top of ReactiveModules
@@ -121,38 +111,16 @@ export function createActionContainerCollector<
   S extends {} = {},
 >(modules: ReactiveModule<Props, P, S>[]): ActionContainerCollector<P, S> {
   let collector: ActionContainerCollector<P, S> = {}
-  let hasStart = false
-  let hasStop = false
 
   for (let mod of modules) {
     let { name, state, View, ...actionCreators } = mod
 
     for (let item of Object.values(actionCreators || {})) {
+      if (!isActionContainer(item)) continue
+
       let creator = item as unknown as ActionContainer<P, S>
       creator.module = mod
       collector[creator.actionUniqName] = creator
-
-      if (/\(@start\)/.test(creator.actionUniqName.toString())) {
-        hasStart = true
-      }
-
-      if (/\(@stop\)/.test(creator.actionUniqName.toString())) {
-        hasStop = true
-      }
-    }
-
-    if (!hasStart) {
-      mod.start = action<typeof mod, any>(when('@start'))
-      mod.start.module = mod as any
-
-      collector[mod.start.actionUniqName] = mod.start as any
-    }
-
-    if (!hasStop) {
-      mod.stop = action<typeof mod, any>(when('@stop'))
-      mod.stop.module = mod as any
-
-      collector[mod.stop.actionUniqName] = mod.stop as any
     }
   }
 
@@ -198,4 +166,15 @@ export function removeModule(
     .filter(k => k !== mod.name)
     .map(k => [k, state[k]])
     .reduce((acc, [k, v]) => ({ ...acc, [k as symbol]: v }), {})
+}
+
+/**
+ * Test if a member is an action container
+ */
+export function isActionContainer(
+  container: ActionContainer<any, any> | any,
+): container is ActionContainer<any, any> {
+  return (
+    'function' === typeof container && undefined !== container.actionUniqName
+  )
 }

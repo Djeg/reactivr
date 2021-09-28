@@ -1,6 +1,9 @@
+import { DEFAULT_ID } from './actions'
 import {
   createActionContainerCollector,
   createRootReducer,
+  destroyModuleReducer,
+  initModuleReducer,
   initRootState,
   mergeStates,
   removeModule,
@@ -34,8 +37,8 @@ export default class Store<S extends {} = {}> {
     this.state = initRootState(modules)
 
     this.dispatch.bind(this)
-    this.startModule.bind(this)
-    this.stopModule.bind(this)
+    this.initModule.bind(this)
+    this.destroyModule.bind(this)
     this.getState.bind(this)
     this.register.bind(this)
     this.unregister.bind(this)
@@ -53,41 +56,23 @@ export default class Store<S extends {} = {}> {
   /**
    * Initialize a given reactive module state
    */
-  public startModule<
+  public initModule<
     Props extends {} = {},
     Payload = undefined,
     State extends {} = {},
   >(mod: ReactiveModule<Props, Payload, State>, id?: string): void {
-    id
-      ? (this.state = this.reducer({
-          name: Symbol('@start'),
-          payload: mod,
-          id,
-        })(this.state))
-      : (this.state = this.reducer({
-          name: Symbol('@start'),
-          payload: mod,
-        })(this.state))
+    this.state = initModuleReducer(mod, id)(this.state)
   }
 
   /**
    * Destroy a given reactive module state
    */
-  public stopModule<
+  public destroyModule<
     Props extends {} = {},
     Payload = undefined,
     State extends {} = {},
   >(mod: ReactiveModule<Props, Payload, State>, id?: string): void {
-    id
-      ? (this.state = this.reducer({
-          name: Symbol('@stop'),
-          payload: mod,
-          id,
-        })(this.state))
-      : (this.state = this.reducer({
-          name: Symbol('@stop'),
-          payload: mod,
-        })(this.state))
+    this.state = destroyModuleReducer(mod, id)(this.state)
   }
 
   /**
@@ -95,6 +80,27 @@ export default class Store<S extends {} = {}> {
    */
   public getState() {
     return this.state
+  }
+
+  /**
+   * Select a given state
+   */
+  public selectState<R = undefined>(
+    mod: ReactiveModule<any, any, any>,
+    id?: string,
+    selector?: <S extends {} = {}>(state: S) => R,
+  ): R | undefined {
+    let container = this.state[mod.name]
+
+    if (!container) return undefined
+
+    let moduleState = container[id ?? DEFAULT_ID]
+
+    if (!moduleState) return undefined
+
+    if (!selector) return moduleState as unknown as R
+
+    return selector(moduleState as unknown as S)
   }
 
   /**

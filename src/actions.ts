@@ -8,6 +8,11 @@ import {
 } from './types'
 
 /**
+ * Contains the action default id
+ */
+export const DEFAULT_ID = '@default'
+
+/**
  * This function generate a uniq action name
  */
 export const uniqName = () => `_${Math.random().toString(36).substr(2, 9)}`
