@@ -85,6 +85,24 @@ export default class Store<S extends {} = {}> {
   }
 
   /**
+   * Return the state for the given module
+   */
+  public selectModule<S extends {} = {}>(
+    mod: ReactiveModule<any, any, S>,
+    id: string = DEFAULT_ID,
+  ): S | undefined {
+    let container = this.state[mod.name]
+
+    if (!container) return undefined
+
+    let state = container[id]
+
+    if (!state) return undefined
+
+    return state as unknown as S
+  }
+
+  /**
    * Select a given state
    */
   public select<R = undefined>(
