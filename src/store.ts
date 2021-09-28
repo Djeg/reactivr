@@ -1,5 +1,5 @@
 import { DEFAULT_ID } from './actions'
-import { SelectorContainer } from './types'
+import { SelectorContainer, ActionListener } from './types'
 import {
   createActionContainerCollector,
   createRootReducer,
@@ -26,6 +26,8 @@ import { select } from './selector'
 export default class Store<S extends {} = {}> {
   private actions: ActionContainerCollector<any, any>
 
+  private listeners: Array<ActionListener<S, any>>
+
   private reducer: GlobalReducer<S, Action<any>>
 
   private state: StateCollector<S>
@@ -37,6 +39,7 @@ export default class Store<S extends {} = {}> {
     this.actions = createActionContainerCollector(modules)
     this.reducer = createRootReducer(this.actions)
     this.state = initRootState(modules)
+    this.listeners = []
 
     this.dispatch.bind(this)
     this.initModule.bind(this)
@@ -44,15 +47,19 @@ export default class Store<S extends {} = {}> {
     this.getState.bind(this)
     this.register.bind(this)
     this.unregister.bind(this)
+    this.triggerActionListener.bind(this)
+    this.listen.bind(this)
   }
 
   /**
    * Dispatch an action and produce a new state
    */
-  public dispatch<P = undefined>(action: Action<P>, id?: string) {
+  public async dispatch<P = undefined>(action: Action<P>, id?: string) {
     id
       ? (this.state = this.reducer({ ...action, id })(this.state))
       : (this.state = this.reducer(action)(this.state))
+
+    return this.listen(action)
   }
 
   /**
@@ -82,6 +89,24 @@ export default class Store<S extends {} = {}> {
    */
   public getState() {
     return this.state
+  }
+
+  /**
+   * Return the state for the given module
+   */
+  public selectModule<S extends {} = {}>(
+    mod: ReactiveModule<any, any, S>,
+    id: string = DEFAULT_ID,
+  ): S | undefined {
+    let container = this.state[mod.name]
+
+    if (!container) return undefined
+
+    let state = container[id]
+
+    if (!state) return undefined
+
+    return state as unknown as S
   }
 
   /**
@@ -132,5 +157,52 @@ export default class Store<S extends {} = {}> {
     this.actions = createActionContainerCollector(this.modules)
     this.reducer = createRootReducer(this.actions)
     this.state = removeModule(mod, this.state)
+  }
+
+  /**
+   * Add an action listener
+   */
+  public addActionListener<P = any>(listener: ActionListener<S, P>): void {
+    if (-1 === this.listeners.indexOf(listener)) {
+      this.listeners.push(listener)
+    }
+  }
+
+  /**
+   * Remove an action listener
+   */
+  public removeActionListener<P = any>(listener: ActionListener<S, P>): void {
+    this.listeners = this.listeners.filter(l => l !== listener)
+  }
+
+  /**
+   * Trigger all listeners
+   */
+  private async listen<P = any>(action: Action<P>): Promise<void> {
+    return Promise.all(
+      this.listeners.map(l => this.triggerActionListener(action, l(this))),
+    ).then(() => undefined)
+  }
+
+  /**
+   * Trigger one listener
+   */
+  private async triggerActionListener<P = any>(
+    action: Action<P>,
+    listener: (a: Action<P>) => void | Promise<void>,
+  ): Promise<void> {
+    return new Promise((res, rej) => {
+      try {
+        const r: any = listener(action)
+
+        if (r && r.then && r.catch) {
+          return r.then(res).catch(rej)
+        }
+
+        res(r)
+      } catch (e) {
+        rej(e)
+      }
+    })
   }
 }

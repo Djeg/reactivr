@@ -1,3 +1,5 @@
+import Store from './store'
+
 /**
  * Define the shape of an action. An action is a simple
  * object with two keys:
@@ -61,6 +63,13 @@ export type ActionReducer<
 > = Payload extends undefined
   ? () => (state: State) => State
   : (payload: Payload) => (state: State) => State | void
+
+/**
+ * Define an action listener shape
+ */
+export type ActionListener<S extends {} = {}, P = any> = {
+  (s: Store<S>): (a: Action<P>) => void | Promise<void>
+}
 
 /**
  * Define the shape simple effect
