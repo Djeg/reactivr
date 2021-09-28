@@ -1,4 +1,5 @@
 import { DEFAULT_ID } from './actions'
+import { SelectorContainer } from './types'
 import {
   createActionContainerCollector,
   createRootReducer,
@@ -15,6 +16,7 @@ import {
   ReactiveModule,
   StateCollector,
 } from './types'
+import { select } from './selector'
 
 /**
  * This store is a full driver for any kind of state
@@ -85,22 +87,11 @@ export default class Store<S extends {} = {}> {
   /**
    * Select a given state
    */
-  public selectState<R = undefined>(
-    mod: ReactiveModule<any, any, any>,
-    id?: string,
-    selector?: <S extends {} = {}>(state: S) => R,
+  public select<S extends {} = {}, R = undefined>(
+    selector: SelectorContainer<any, R>,
+    id: string = DEFAULT_ID,
   ): R | undefined {
-    let container = this.state[mod.name]
-
-    if (!container) return undefined
-
-    let moduleState = container[id ?? DEFAULT_ID]
-
-    if (!moduleState) return undefined
-
-    if (!selector) return moduleState as unknown as R
-
-    return selector(moduleState as unknown as S)
+    return select(selector, id)(this.state)
   }
 
   /**
