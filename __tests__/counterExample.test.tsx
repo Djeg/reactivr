@@ -33,9 +33,11 @@ it('can increment and decrement the counter', () => {
   })
 
   let incrementBtn = document.querySelector('.counter-increment')
+  let decrementBtn = document.querySelector('.counter-decrement')
   let counter = document.querySelector('.counter-amount')
 
   expect(incrementBtn).toBeDefined()
+  expect(decrementBtn).toBeDefined()
   expect(counter).toBeDefined()
 
   act(() => {
@@ -46,11 +48,11 @@ it('can increment and decrement the counter', () => {
     counter?.textContent
   )).toBe(1)
 
-  //act(() => {
-  //  decrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-  //})
+  act(() => {
+    decrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
 
-  //expect(Number(
-  //  document.querySelector('.counter-amount')?.textContent
-  //)).toBe(0)
+  expect(Number(
+    document.querySelector('.counter-amount')?.textContent
+  )).toBe(0)
 })

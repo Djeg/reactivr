@@ -66,10 +66,6 @@ export function useActionEvent<P = any, E = Element>(
   return (e: React.SyntheticEvent<E>) => {
     const action: any = pipe.apply(null, fns as any)(e)
 
-    console.warn(action)
-    console.warn(typeof action)
-    console.warn(typeof action.name)
-
     if (
       !action ||
       'object' !== typeof action ||

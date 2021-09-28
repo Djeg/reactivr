@@ -22,6 +22,7 @@ export const Render = ({
 }: RenderProps) => {
   const [initialized, setInitialized] = useState<boolean>(false)
   const [moduleState, setModuleState] = useState<typeof state.state>(state.state)
+  const [generatedId, setGeneratedId] = useState(Symbol('id'))
   const store = useStore()
 
   useEffect(() => {
@@ -41,8 +42,17 @@ export const Render = ({
     setModuleState(retrievedState)
     setInitialized(true)
 
+    const actionListener = () => () => {
+      const newState = store.selectModule<typeof state.state>(state, id)
+
+      setModuleState(newState)
+    }
+
+    store.addActionListener(actionListener)
+
     return () => {
       setInitialized(false)
+      store.removeActionListener(actionListener)
       store.destroyModule(state)
     }
   }, [state])
