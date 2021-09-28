@@ -87,7 +87,7 @@ export default class Store<S extends {} = {}> {
   /**
    * Select a given state
    */
-  public select<S extends {} = {}, R = undefined>(
+  public select<R = undefined>(
     selector: SelectorContainer<any, R>,
     id: string = DEFAULT_ID,
   ): R | undefined {
