@@ -26,3 +26,31 @@ it('can display the counter', () => {
 
   expect(Number(counter?.textContent)).toBe(0)
 })
+
+it('can increment and decrement the counter', () => {
+  act(() => {
+    render(<App />, container)
+  })
+
+  let incrementBtn = document.querySelector('.counter-increment')
+  let counter = document.querySelector('.counter-amount')
+
+  expect(incrementBtn).toBeDefined()
+  expect(counter).toBeDefined()
+
+  act(() => {
+    incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+
+  expect(Number(
+    counter?.textContent
+  )).toBe(1)
+
+  //act(() => {
+  //  decrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  //})
+
+  //expect(Number(
+  //  document.querySelector('.counter-amount')?.textContent
+  //)).toBe(0)
+})

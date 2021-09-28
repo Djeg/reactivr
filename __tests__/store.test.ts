@@ -61,3 +61,47 @@ it('can unregister / register a given module', () => {
     [Counter.name]: {},
   })
 })
+
+it('contains action listeners', async () => {
+  let called = [false, false]
+  let counter = 0
+  let actions: any[] = [null, null]
+
+  let l1 = () => (a: any) => {
+    counter += 1
+    called[0] = true
+
+    if (/increment/.test(a.name.toString())) actions[0] = a
+  }
+
+  let l2 = () => async (a: any) => {
+    counter += 1
+    called[1] = true
+
+    if (/decrement/.test(a.name.toString())) actions[1] = a
+  }
+
+  store.initModule(Counter)
+
+  store.addActionListener(l1)
+  store.addActionListener(l2)
+
+  await store.dispatch(Counter.increment())
+  await store.dispatch(Counter.decrement())
+
+  expect(called[0]).toBe(true)
+  expect(called[1]).toBe(true)
+
+  expect(actions.length).toBe(2)
+  expect(actions[0]).toEqual(Counter.increment())
+  expect(actions[1]).toEqual(Counter.decrement())
+
+  expect(counter).toBe(4)
+
+  store.removeActionListener(l1)
+  store.removeActionListener(l2)
+
+  await store.dispatch(Counter.increment())
+
+  expect(counter).toBe(4)
+})

@@ -3,6 +3,7 @@ import { Provider, StoreContext } from './react/Provider'
 import { Render } from './react/Render'
 import { selector } from './selector'
 import { ViewComponent } from './types'
+import { useActionEvent, useStore } from './react/hooks'
 
 export {
   action,
@@ -14,4 +15,6 @@ export {
   Provider,
   StoreContext,
   Render,
+  useActionEvent,
+  useStore,
 }
