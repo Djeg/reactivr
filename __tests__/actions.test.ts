@@ -1,18 +1,5 @@
 import * as Counter from '../example/counter/Counter'
-import {
-  action,
-  isStartAction,
-  isStartActionName,
-  isStopAction,
-  isStopActionName,
-  produce,
-  reduce,
-  START,
-  STOP,
-  when,
-  whenStart,
-  whenStop,
-} from '../src/actions'
+import { action, produce, reduce, when } from '../src/actions'
 import { ReactiveModule } from '../src/types'
 
 it('creates an empty action creator', () => {
@@ -36,24 +23,6 @@ it('creates an action creator with a name using when', () => {
   expect(data.name).toBe(creator.actionUniqName)
   expect(data.payload).toBe('foo')
   expect(`${creator}`).toBe('test')
-})
-
-it('creates an starting action', () => {
-  const creator = action<ReactiveModule<any, any, any>>(whenStart())
-  const data = creator(Counter as ReactiveModule<any, any, any>)
-
-  expect(data.name).toBe(creator.actionUniqName)
-  expect(isStartAction(data)).toBe(true)
-  expect(data.payload).toEqual(Counter)
-})
-
-it('creates an stoping action', () => {
-  const creator = action<ReactiveModule<any, any, any>>(whenStop())
-  const data = creator(Counter as ReactiveModule<any, any, any>)
-
-  expect(data.name).toBe(creator.actionUniqName)
-  expect(isStopAction(data)).toBe(true)
-  expect(data.payload).toEqual(Counter)
 })
 
 it('creates an action creator with an action reducer', () => {
@@ -101,32 +70,4 @@ it('can attaches effects on an action', () => {
   if (!ef) return
 
   expect(ef()).toEqual('effect')
-})
-
-it('can detect start and stop actions', () => {
-  const a1 = {
-    name: Symbol('foo'),
-    payload: undefined,
-  }
-  const a2 = {
-    name: START,
-    payload: undefined,
-  }
-  const a3 = {
-    name: STOP,
-    payload: undefined,
-  }
-
-  expect(isStartAction(a1)).toBe(false)
-  expect(isStartAction(a2)).toBe(true)
-  expect(isStartAction(a3)).toBe(false)
-
-  expect(isStopAction(a1)).toBe(false)
-  expect(isStopAction(a2)).toBe(false)
-  expect(isStopAction(a3)).toBe(true)
-
-  expect(isStartActionName(START)).toBe(true)
-  expect(isStartActionName(STOP)).toBe(false)
-  expect(isStopActionName(STOP)).toBe(true)
-  expect(isStopActionName(START)).toBe(false)
 })

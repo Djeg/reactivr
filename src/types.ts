@@ -1,5 +1,3 @@
-import { START, STOP } from './actions'
-
 /**
  * Define the shape of an action. An action is a simple
  * object with two keys:
@@ -132,16 +130,6 @@ export type ActionContainerCollector<
   State extends {} = {},
 > = {
   [index: symbol]: ActionContainer<Payload, State>
-}
-
-/**
- * Define the shape of a module starter container
- */
-export type ModuleStarterContainer<S extends {} = {}> = {
-  [moduleName: symbol]: {
-    [START]: ActionContainer<ReactiveModule<any, any, any>, S>
-    [STOP]: ActionContainer<ReactiveModule<any, any, any>, S>
-  }
 }
 
 /**

@@ -9,7 +9,6 @@ import {
   Action,
   ActionContainerCollector,
   GlobalReducer,
-  ModuleStarterContainer,
   ReactiveModule,
   StateCollector,
 } from './types'
