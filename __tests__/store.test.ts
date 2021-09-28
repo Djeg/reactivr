@@ -42,8 +42,22 @@ it('can dispatch any action', () => {
   })
 })
 
-it('can unregister a given module', () => {
+it('can select a state part', () => {
+  store.initModule(Counter)
+
+  const amount = store.select(Counter.selectAmount)
+
+  expect(amount).toBe(0)
+})
+
+it('can unregister / register a given module', () => {
   store.unregister(Counter)
 
   expect(store.getState()).toEqual({})
+
+  store.register(Counter)
+
+  expect(store.getState()).toEqual({
+    [Counter.name]: {},
+  })
 })

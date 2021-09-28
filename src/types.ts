@@ -153,6 +153,28 @@ export type ViewComponent<Props extends {} = {}, State extends {} = {}> = (
 ) => JSX.Element
 
 /**
+ * Define the subject of selector
+ */
+export type SelectorSubject<S extends {} = {}> =
+  | symbol
+  | ReactiveModule<any, any, S>
+
+/**
+ * Define the ability to select a module state part
+ */
+export type Selector<S extends {} = {}, R = any> = {
+  (state: S): R | undefined
+}
+
+/**
+ * This is a selector container
+ */
+export type SelectorContainer<S extends {} = {}, R = any> = Selector<S, R> & {
+  __kind__: 'selector'
+  subject: SelectorSubject<S>
+}
+
+/**
  * Define the shape of a reactive module. A reactive
  * module is an object that contains all nescessary informations
  * that will be used to render a module
@@ -165,13 +187,49 @@ export type ReactiveModule<
   name: symbol
   state: State
   View: ViewComponent<Props, State>
-  start?: ActionContainer<ReactiveModule<any, any, any>, any>
-  stop?: ActionContainer<ReactiveModule<any, any, any>, any>
-  [actionCreators: string]:
+  [actionsOrSelectors: string]:
     | ActionContainer<Payload, State>
     | ActionContainer<ReactiveModule<any, any, any>, any>
+    | SelectorContainer<State, any>
     | symbol
     | State
     | ViewComponent<Props, State>
-    | undefined
+}
+
+/**
+ * Test if a member is an action container
+ */
+export function isActionContainer(
+  container: ActionContainer<any, any> | any,
+): container is ActionContainer<any, any> {
+  return (
+    'function' === typeof container && undefined !== container.actionUniqName
+  )
+}
+
+/**
+ * Test if a member is a seletor container
+ */
+export function isSelectorContainer(
+  container: SelectorContainer<any, any> | any,
+): container is SelectorContainer<any, any> {
+  return 'function' === typeof container && container['__kind__'] === 'selector'
+}
+
+/**
+ * Test if a single selector is a symbol
+ */
+export function isSymbolSubjectSelector<S extends {} = {}>(
+  selector: SelectorSubject<S>,
+): selector is symbol {
+  return 'symbol' === typeof selector
+}
+
+/**
+ * Retrieve the name of a single subject selector
+ */
+export function getSubjectSelectorName<S extends {} = {}>(
+  selector: SelectorSubject<S>,
+): symbol {
+  return isSymbolSubjectSelector(selector) ? selector : selector.name
 }
