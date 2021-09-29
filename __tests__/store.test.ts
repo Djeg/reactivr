@@ -29,14 +29,15 @@ it('can start and store a module easily', () => {
   })
 })
 
-it('can dispatch any action', () => {
+it('can dispatch any action', async () => {
   store.initModule(Counter)
-  store.dispatch(Counter.increment())
+  await store.dispatch(Counter.increment())
 
   expect(store.getState()).toEqual({
     [Counter.name]: {
       '@default': {
         amount: 1,
+        hasReachedFour: false,
       },
     },
   })
@@ -85,6 +86,7 @@ it('contains action listeners', async () => {
 
   store.addActionListener(l1)
   store.addActionListener(l2)
+  store.toggleEffectEngine(false)
 
   await store.dispatch(Counter.increment())
   await store.dispatch(Counter.decrement())

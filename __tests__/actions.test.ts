@@ -1,6 +1,4 @@
-import * as Counter from '../example/counter/Counter'
 import { action, produce, reduce, when } from '../src/actions'
-import { ReactiveModule } from '../src/types'
 
 it('creates an empty action creator', () => {
   const creator = action()
@@ -60,14 +58,10 @@ it('creates an action creator with an action reducer', () => {
 it('can attaches effects on an action', () => {
   const creator = action(
     when('something'),
-    produce(() => 'effect'),
+    produce(() => () => {
+      'effect'
+    }),
   )
 
   expect(creator.effects?.length).toBe(1)
-
-  const ef = creator.effects?.[0]
-
-  if (!ef) return
-
-  expect(ef()).toEqual('effect')
 })

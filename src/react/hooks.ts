@@ -1,8 +1,19 @@
 import { useContext } from 'react'
 import { pipe } from '../functions/pipe'
 import Store from '../store'
-import { ActionContainer, Action } from '../types'
+import {
+  ActionContainer,
+  Action,
+  SelectorContainer,
+  ReactiveModule,
+} from '../types'
 import { StoreContext } from './Provider'
+import { DEFAULT_ID } from '../actions'
+
+// @TODO Add a hook that retrieve the current module ID (perhaps by using
+// a ModuleIdContext ?)
+// @TODO Add a hook that exexute an action during the component initialization
+// @TODO Add a hook that execute an action during the component destruction
 
 /**
  * Retrieve the store
@@ -27,35 +38,61 @@ export const useStore = (): Store => {
  */
 export function useActionEvent<P = any, S extends {} = any, E = Element>(
   fn: ActionContainer<P, S>,
-): (e: React.SyntheticEvent<Element>) => void
+): (e: React.SyntheticEvent<E>) => void
 export function useActionEvent<P = any, S extends {} = any, E = Element>(
   fn1: (a: React.SyntheticEvent<E>) => P,
   fn2: ActionContainer<P, S>,
 ): (e: React.SyntheticEvent<Element>) => void
-export function useActionEvent<P = any, S extends {} = any, E = Element>(
-  fn1: <B = any>(a: React.SyntheticEvent<E>) => B,
-  fn2: <A = any>(a: A) => P,
+export function useActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+>(
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => P,
   fn3: ActionContainer<P, S>,
 ): (e: React.SyntheticEvent<Element>) => void
-export function useActionEvent<P = any, S extends {} = any, E = Element>(
-  fn1: <B = any>(a: React.SyntheticEvent<E>) => B,
-  fn2: <A = any, B = any>(a: A) => B,
-  fn3: <A = any>(a: A) => P,
+export function useActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+  B = any,
+>(
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => B,
+  fn3: (a: B) => P,
   fn4: ActionContainer<P, S>,
 ): (e: React.SyntheticEvent<Element>) => void
-export function useActionEvent<P = any, S extends {} = any, E = Element>(
-  fn1: <B = any>(a: React.SyntheticEvent<E>) => B,
-  fn2: <A = any, B = any>(a: A) => B,
-  fn3: <A = any, B = any>(a: A) => B,
-  fn4: <A = any>(a: A) => P,
+export function useActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+  B = any,
+  C = any,
+>(
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => B,
+  fn3: (a: B) => C,
+  fn4: (a: C) => P,
   fn5: ActionContainer<P, S>,
 ): (e: React.SyntheticEvent<Element>) => void
-export function useActionEvent<P = any, S extends {} = any, E = Element>(
-  fn1: <B = any>(a: React.SyntheticEvent<E>) => B,
-  fn2: <A = any, B = any>(a: A) => B,
-  fn3: <A = any, B = any>(a: A) => B,
-  fn4: <A = any, B = any>(a: A) => B,
-  fn5: <A = any>(a: A) => P,
+export function useActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+  B = any,
+  C = any,
+  D = any,
+>(
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => B,
+  fn3: (a: B) => C,
+  fn4: (a: C) => D,
+  fn5: (a: D) => P,
   fn6: ActionContainer<P, S>,
 ): (e: React.SyntheticEvent<Element>) => void
 export function useActionEvent<P = any, E = Element>(
@@ -89,4 +126,32 @@ export function useActionEvent<P = any, E = Element>(
 
     store.dispatch(action as Action<P>)
   }
+}
+
+/**
+ * Select a state part by giving it a selector
+ */
+export function useSelector<R = any>(
+  selector: SelectorContainer<any, R>,
+  id: string = DEFAULT_ID,
+): R | undefined {
+  const store = useStore()
+
+  const result = store.select<R>(selector, id)
+
+  return result
+}
+
+/**
+ * Select an entire module state
+ */
+export function useModule<S extends {} = any>(
+  mod: ReactiveModule<any, any, S>,
+  id: string = DEFAULT_ID,
+): S | undefined {
+  const store = useStore()
+
+  const data = store.selectModule<S>(mod, id)
+
+  return data
 }

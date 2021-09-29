@@ -72,11 +72,34 @@ export type ActionListener<S extends {} = {}, P = any> = {
 }
 
 /**
- * Define the shape simple effect
- *
- * @todo make it more complex
+ * This is the shape of a ligh store
  */
-export type SimpleEffect = () => Promise<any> | any
+export type LightStore = {
+  /**
+   * dispatch an action into the store
+   */
+  dispatch: <P = any>(action: Action<P>, id?: string) => void
+
+  /**
+   * Select the state of a module
+   */
+  selectModule: <S extends {} = any>(
+    mod: ReactiveModule<any, any, S>,
+    id?: string,
+  ) => S
+
+  /**
+   * Select a state from a selector
+   */
+  select: <R = any>(selector: SelectorContainer<any, R>, id?: string) => R
+}
+
+/**
+ * Define the shape simple effect
+ */
+export type Effect = (
+  store: LightStore,
+) => <P = any>(action: Action<P>) => void | Promise<void>
 
 /**
  * This is the shape of an ActionContainer. A superset
@@ -111,7 +134,7 @@ export type ActionContainer<
   /**
    * Contains the actions effects
    */
-  effects?: SimpleEffect[]
+  effects?: Effect[]
 
   /**
    * Contains the module name
@@ -157,7 +180,7 @@ export type StateCollector<State extends {} = {}> = {
  * This is a standard View Component type wich accepts props
  * and state and merge them into a uniq props argument.
  */
-export type ViewComponent<Props extends {} = {}, State extends {} = {}> = (
+export type ViewComponent<State extends {} = {}, Props extends {} = {}> = (
   props: Props & State,
 ) => JSX.Element
 
@@ -195,14 +218,15 @@ export type ReactiveModule<
 > = {
   name: symbol
   state: State
-  View: ViewComponent<Props, State>
+  View: ViewComponent<State, Props>
   [actionsOrSelectors: string]:
     | ActionContainer<Payload, State>
     | ActionContainer<ReactiveModule<any, any, any>, any>
     | SelectorContainer<State, any>
     | symbol
     | State
-    | ViewComponent<Props, State>
+    | ViewComponent<State, Props>
+    | any
 }
 
 /**

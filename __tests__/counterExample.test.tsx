@@ -56,3 +56,28 @@ it('can increment and decrement the counter', () => {
     document.querySelector('.counter-amount')?.textContent
   )).toBe(0)
 })
+
+it('handles effects', () => {
+  act(() => {
+    render(<App />, container)
+  })
+
+  let incrementBtn = document.querySelector('.counter-increment')
+  let counter = document.querySelector('.counter-amount')
+
+  act(() => {
+    incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+
+  expect(Number(
+    counter?.textContent
+  )).toBe(5)
+
+  let reachedFour = document.querySelector('.reached-four')
+
+  expect(reachedFour).toBeDefined()
+})
