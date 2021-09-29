@@ -22,17 +22,17 @@ it('creates a root reducer', () => {
 
   expect(firstState).toEqual({
     [Counter.name]: {
-      '@default': { amount: 0 },
+      '@default': { amount: 0, hasReachedFour: false },
     },
   })
   expect(secondState).toEqual({
     [Counter.name]: {
-      '@default': { amount: 1 },
+      '@default': { amount: 1, hasReachedFour: false },
     },
   })
   expect(thirdState).toEqual({
     [Counter.name]: {
-      '@default': { amount: 0 },
+      '@default': { amount: 0, hasReachedFour: false },
     },
   })
   expect(lastState).toEqual({
