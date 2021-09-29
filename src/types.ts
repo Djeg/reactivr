@@ -226,6 +226,7 @@ export type ReactiveModule<
     | symbol
     | State
     | ViewComponent<Props, State>
+    | any
 }
 
 /**
