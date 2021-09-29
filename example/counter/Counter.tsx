@@ -70,7 +70,7 @@ export const increment = action(
       amount: add(1),
     }),
   ),
-  produce<undefined, State>(checkReachedFourEff),
+  produce(checkReachedFourEff),
 )
 
 /**
@@ -83,7 +83,7 @@ export const decrement = action(
       amount: subtract(__, 1),
     }),
   ),
-  produce<undefined, State>(checkReachedFourEff),
+  produce(checkReachedFourEff),
 )
 
 /**
@@ -121,10 +121,7 @@ export const selectAmount = select<number>(prop('amount'))
 /**
  * Display a counter on the screen
  */
-export const View: ViewComponent<{}, typeof state> = ({
-  amount,
-  hasReachedFour,
-}) => {
+export const View: ViewComponent<State> = ({ amount, hasReachedFour }) => {
   const onIncrement = useActionEvent(increment)
   const onDecrement = useActionEvent(decrement)
 

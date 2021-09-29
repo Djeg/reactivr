@@ -180,7 +180,7 @@ export type StateCollector<State extends {} = {}> = {
  * This is a standard View Component type wich accepts props
  * and state and merge them into a uniq props argument.
  */
-export type ViewComponent<Props extends {} = {}, State extends {} = {}> = (
+export type ViewComponent<State extends {} = {}, Props extends {} = {}> = (
   props: Props & State,
 ) => JSX.Element
 
@@ -218,14 +218,14 @@ export type ReactiveModule<
 > = {
   name: symbol
   state: State
-  View: ViewComponent<Props, State>
+  View: ViewComponent<State, Props>
   [actionsOrSelectors: string]:
     | ActionContainer<Payload, State>
     | ActionContainer<ReactiveModule<any, any, any>, any>
     | SelectorContainer<State, any>
     | symbol
     | State
-    | ViewComponent<Props, State>
+    | ViewComponent<State, Props>
     | any
 }
 

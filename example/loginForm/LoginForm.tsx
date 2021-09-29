@@ -109,7 +109,7 @@ export const send = action(
 /**
  * Finaly return the view of this module
  */
-export const View: ViewComponent<{}, typeof state> = ({
+export const View: ViewComponent<State> = ({
   username,
   password,
   error,
