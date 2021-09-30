@@ -248,7 +248,7 @@ export default class Store<S extends {} = {}> {
     let promises = effs
       .map(eff => {
         try {
-          const r: any = eff(lightStore)
+          const r: any = eff(lightStore)(action)
 
           if (r && r.then && r.catch) return r
 

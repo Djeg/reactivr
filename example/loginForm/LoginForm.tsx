@@ -1,5 +1,6 @@
-import { assoc, evolve, mergeLeft, objOf, pipe } from 'ramda'
+import { assoc, evolve, mergeLeft, not, objOf, pipe } from 'ramda'
 import React from 'react'
+import { useLifecycleAction } from '../../src/react/hooks'
 import {
   action,
   eventTargetValue,
@@ -33,6 +34,7 @@ export const state = {
   },
   error: '',
   sending: false,
+  displayed: false,
 }
 
 /**
@@ -103,6 +105,18 @@ export const send = action(
 )
 
 /**
+ * Toggle display boolean
+ */
+export const toggleDisplay = action(
+  when('display'),
+  reduce<undefined, State>(() =>
+    evolve({
+      displayed: not,
+    }),
+  ),
+)
+
+/**
  * === VIEW ===
  */
 
@@ -115,6 +129,8 @@ export const View: ViewComponent<State> = ({
   error,
   sending,
 }) => {
+  useLifecycleAction(toggleDisplay(), toggleDisplay())
+
   const onUsernameChange = useActionEvent(
     eventTargetValue,
     objOf('value'),

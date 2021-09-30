@@ -1,19 +1,15 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
+import { DEFAULT_ID } from '../actions'
 import { pipe } from '../functions/pipe'
 import Store from '../store'
 import {
-  ActionContainer,
   Action,
-  SelectorContainer,
+  ActionContainer,
   ReactiveModule,
+  SelectorContainer,
 } from '../types'
 import { StoreContext } from './Provider'
-import { DEFAULT_ID } from '../actions'
-
-// @TODO Add a hook that retrieve the current module ID (perhaps by using
-// a ModuleIdContext ?)
-// @TODO Add a hook that exexute an action during the component initialization
-// @TODO Add a hook that execute an action during the component destruction
+import { RenderModuleIdContext } from './Render'
 
 /**
  * Retrieve the store
@@ -31,6 +27,15 @@ export const useStore = (): Store => {
     `)
 
   return store
+}
+
+/**
+ * Retrieve the dispatch function
+ */
+export const useDispatch = () => {
+  const store = useStore()
+
+  return <P = undefined>(action: Action<P>) => store.dispatch(action)
 }
 
 /**
@@ -98,6 +103,7 @@ export function useActionEvent<
 export function useActionEvent<P = any, E = Element>(
   ...fns: Function[]
 ): (e: React.SyntheticEvent<E>) => void {
+  const id = useModuleId()
   const store = useStore()
 
   return (e: React.SyntheticEvent<E>) => {
@@ -124,7 +130,109 @@ export function useActionEvent<P = any, E = Element>(
         useActionEvent(MyModule.action())
       `)
 
-    store.dispatch(action as Action<P>)
+    store.dispatch(action as Action<P>, id)
+  }
+}
+
+/**
+ * Create foreign action event handler,
+ */
+export function useForeignActionEvent<P = any, S extends {} = any, E = Element>(
+  id: string,
+  fn: ActionContainer<P, S>,
+): (e: React.SyntheticEvent<E>) => void
+export function useForeignActionEvent<P = any, S extends {} = any, E = Element>(
+  id: string,
+  fn1: (a: React.SyntheticEvent<E>) => P,
+  fn2: ActionContainer<P, S>,
+): (e: React.SyntheticEvent<Element>) => void
+export function useForeignActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+>(
+  id: string,
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => P,
+  fn3: ActionContainer<P, S>,
+): (e: React.SyntheticEvent<Element>) => void
+export function useForeignActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+  B = any,
+>(
+  id: string,
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => B,
+  fn3: (a: B) => P,
+  fn4: ActionContainer<P, S>,
+): (e: React.SyntheticEvent<Element>) => void
+export function useForeignActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+  B = any,
+  C = any,
+>(
+  id: string,
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => B,
+  fn3: (a: B) => C,
+  fn4: (a: C) => P,
+  fn5: ActionContainer<P, S>,
+): (e: React.SyntheticEvent<Element>) => void
+export function useForeignActionEvent<
+  P = any,
+  S extends {} = any,
+  E = Element,
+  A = any,
+  B = any,
+  C = any,
+  D = any,
+>(
+  id: string,
+  fn1: (a: React.SyntheticEvent<E>) => A,
+  fn2: (a: A) => B,
+  fn3: (a: B) => C,
+  fn4: (a: C) => D,
+  fn5: (a: D) => P,
+  fn6: ActionContainer<P, S>,
+): (e: React.SyntheticEvent<Element>) => void
+export function useForeignActionEvent<P = any, E = Element>(
+  id: string,
+  ...fns: Function[]
+): (e: React.SyntheticEvent<E>) => void {
+  const store = useStore()
+
+  return (e: React.SyntheticEvent<E>) => {
+    const action: any = pipe.apply(null, fns as any)(e)
+
+    if (
+      !action ||
+      'object' !== typeof action ||
+      'symbol' !== typeof action.name
+    )
+      throw Error(`
+        useActionEvent does not return a valid action.
+
+        It's probably coming from the fact that you forget to
+        attach an action creator at the end of the
+        useActionEvent function. You can also verify
+        that you are not calling the action but you are
+        passing the action as a reference like this :
+
+        useActionEvent(MyModule.action)
+
+        and not :
+
+        useActionEvent(MyModule.action())
+      `)
+
+    store.dispatch(action as Action<P>, id)
   }
 }
 
@@ -154,4 +262,48 @@ export function useModule<S extends {} = any>(
   const data = store.selectModule<S>(mod, id)
 
   return data
+}
+
+/**
+ * Retrieve the current reactive module id
+ */
+export function useModuleId(): string {
+  const id = useContext(RenderModuleIdContext)
+
+  if (!id)
+    throw new Error(`
+      Unable to retrieve the module id.
+
+      This error probably happens because
+      you are using the "useModuleId" hooks
+      outside of a reactive module. Make sure
+      to have used in the correct reactive module.
+
+      Sometimes you may want to dispatch an
+      action of an other module. In that case
+      use "useForeignActionEvent" or "useDispatch"
+      hooks.
+    `)
+
+  return id
+}
+
+/**
+ * Use an action that will be dispatch during the component
+ * initialization
+ */
+export const useLifecycleAction = <P1 = undefined, P2 = undefined>(
+  initAction: Action<P1>,
+  destroyAction?: Action<P2>,
+) => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(initAction)
+
+    if (destroyAction)
+      return () => {
+        dispatch(destroyAction)
+      }
+  }, [])
 }
