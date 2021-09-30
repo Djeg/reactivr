@@ -69,7 +69,7 @@ export const Render = ({ state, id, children, ...restProps }: RenderProps) => {
   if (!initialized) return null
 
   return (
-    <RenderModuleIdContext.Provider value={id ?? DEFAULT_ID}>
+    <RenderModuleIdContext.Provider value={moduleId}>
       <state.View {...restProps} {...moduleState}>
         {children}
       </state.View>
