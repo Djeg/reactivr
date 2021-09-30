@@ -5,6 +5,7 @@ let store: Store<any>
 
 beforeEach(() => {
   store = new Store([Counter])
+  store.toggleEffectEngine(false)
 })
 
 it('can build a set of modules into a state', () => {
