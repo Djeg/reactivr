@@ -1,4 +1,5 @@
 import { DEFAULT_ID } from './actions'
+import { buildLightStore, simpleEffectRunner } from './effect'
 import {
   createActionContainerCollector,
   createRootReducer,
@@ -9,9 +10,10 @@ import {
   removeModule,
 } from './reducer'
 import { select } from './selector'
-import { buildLightStore } from './effect'
+import { StoreExtension } from './types'
 import {
   Action,
+  ActionContainer,
   ActionContainerCollector,
   ActionListener,
   GlobalReducer,
@@ -19,6 +21,15 @@ import {
   SelectorContainer,
   StateCollector,
 } from './types'
+
+/**
+ * Contains all the available options for
+ * a store
+ */
+export type StoreOptions<S extends {} = {}, P = any> = {
+  modules: ReactiveModule<any, P, S>[]
+  extensions: Array<StoreExtension<S, P>>
+}
 
 /**
  * This store is a full driver for any kind of state
@@ -41,15 +52,15 @@ export default class Store<S extends {} = {}> {
 
   private modules: ReactiveModule<any, any, S>[]
 
-  private produceEffects: boolean
+  private options: StoreOptions<S>
 
-  constructor(modules: ReactiveModule<any, any, S>[]) {
-    this.modules = modules
-    this.actions = createActionContainerCollector(modules)
+  constructor(options: Partial<StoreOptions<S>> = {}) {
+    this.options = this.buildDefaultOptions(options)
+    this.modules = this.options.modules
+    this.actions = createActionContainerCollector(this.modules)
     this.reducer = createRootReducer(this.actions)
-    this.state = initRootState(modules)
+    this.state = initRootState(this.modules)
     this.listeners = []
-    this.produceEffects = true
 
     this.dispatch.bind(this)
     this.initModule.bind(this)
@@ -61,7 +72,8 @@ export default class Store<S extends {} = {}> {
     this.listen.bind(this)
     this.addActionListener.bind(this)
     this.removeActionListener.bind(this)
-    this.runActionEffects.bind(this)
+    this.getActionContainer.bind(this)
+    this.hasActionContainer.bind(this)
   }
 
   /**
@@ -74,7 +86,12 @@ export default class Store<S extends {} = {}> {
 
     await this.listen(action)
 
-    if (this.produceEffects) this.runActionEffects(action)
+    try {
+      this.options.extensions.forEach(ex => ex(this, action, id))
+    } catch (e) {
+      // @TODO handle errors in a better way
+      console.error(e)
+    }
   }
 
   /**
@@ -97,19 +114,6 @@ export default class Store<S extends {} = {}> {
     State extends {} = {},
   >(mod: ReactiveModule<Props, Payload, State>, id?: string): void {
     this.state = destroyModuleReducer(mod, id)(this.state)
-  }
-
-  /**
-   * Enable or disable the effect engine
-   */
-  public toggleEffectEngine(value?: boolean): void {
-    if (undefined === value) {
-      this.produceEffects = !this.produceEffects
-
-      return
-    }
-
-    this.produceEffects = value
   }
 
   /**
@@ -204,6 +208,38 @@ export default class Store<S extends {} = {}> {
   }
 
   /**
+   * Add the ability to retrieve an action container
+   */
+  public getActionContainer<P = any, S extends {} = {}>(
+    nameOrAction: symbol | Action<P>,
+  ): ActionContainer<P, S> {
+    const name =
+      'symbol' === typeof nameOrAction ? nameOrAction : nameOrAction.name
+    const action = this.actions[name]
+
+    if (!action)
+      throw new Error(`
+        No actions ${name.toString()} has been yet registered.
+
+        Maybe you forget to add the module inside the store
+      `)
+
+    return action as ActionContainer<P, S>
+  }
+
+  /**
+   * Test if an action is registered
+   */
+  public hasActionContainer<P = any>(
+    nameOrAction: symbol | Action<P>,
+  ): boolean {
+    const name =
+      'symbol' === typeof nameOrAction ? nameOrAction : nameOrAction.name
+
+    return undefined !== this.actions[name]
+  }
+
+  /**
    * Trigger all listeners
    */
   private async listen<P = any>(action: Action<P>): Promise<void> {
@@ -235,32 +271,23 @@ export default class Store<S extends {} = {}> {
   }
 
   /**
-   * Run all the effect of an action container
+   * Allow to build default options
    */
-  private async runActionEffects(action: Action<any>): Promise<void> {
-    let container = this.actions[action.name]
-    let lightStore = buildLightStore(this)
-
-    if (!container) return undefined
-
-    let effs = container.effects || []
-
-    let promises = effs
-      .map(eff => {
-        try {
-          const r: any = eff(lightStore)(action)
-
-          if (r && r.then && r.catch) return r
-
-          return Promise.resolve(r)
-        } catch (e) {
-          Promise.reject(e)
-        }
-      })
-      // @TODO Handle error more efficiently
-      .map(p => p.catch(console.error))
-      .map(p => p.then(() => undefined))
-
-    return Promise.all(promises).then(() => undefined)
+  private buildDefaultOptions(
+    options: Partial<StoreOptions<S>>,
+  ): StoreOptions<S> {
+    return {
+      modules: options.modules ?? [],
+      extensions: options.extensions ?? [simpleEffectRunner],
+    }
   }
+}
+
+/**
+ * A simple shortcut to create a store
+ */
+export const createStore = <S extends {} = {}>(
+  options: Partial<StoreOptions<S>> = {},
+): Store<S> => {
+  return new Store(options)
 }

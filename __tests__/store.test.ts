@@ -4,8 +4,10 @@ import Store from '../src/store'
 let store: Store<any>
 
 beforeEach(() => {
-  store = new Store([Counter])
-  store.toggleEffectEngine(false)
+  store = new Store({
+    modules: [Counter],
+    extensions: [],
+  })
 })
 
 it('can build a set of modules into a state', () => {
@@ -87,7 +89,6 @@ it('contains action listeners', async () => {
 
   store.addActionListener(l1)
   store.addActionListener(l2)
-  store.toggleEffectEngine(false)
 
   await store.dispatch(Counter.increment())
   await store.dispatch(Counter.decrement())
@@ -107,4 +108,12 @@ it('contains action listeners', async () => {
   await store.dispatch(Counter.increment())
 
   expect(counter).toBe(4)
+})
+
+it('can test the existence of actions', () => {
+  expect(store.hasActionContainer(Counter.increment.actionUniqName)).toBe(true)
+  expect(store.hasActionContainer(Counter.increment())).toBe(true)
+  expect(store.getActionContainer(Counter.increment())).toBe(Counter.increment)
+
+  expect(store.hasActionContainer(Symbol('none'))).toBe(false)
 })

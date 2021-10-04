@@ -97,9 +97,18 @@ export type LightStore = {
 /**
  * Define the shape simple effect
  */
-export type Effect = (
+export type SimpleEffect = (
   store: LightStore,
 ) => <P = any>(action: Action<P>) => void | Promise<void>
+
+/**
+ * Define the shape of an effect runner
+ */
+export type StoreExtension<S extends {} = {}, P = any> = (
+  store: Store<S>,
+  action: Action<P>,
+  id?: string,
+) => any
 
 /**
  * This is the shape of an ActionContainer. A superset
@@ -134,7 +143,7 @@ export type ActionContainer<
   /**
    * Contains the actions effects
    */
-  effects?: Effect[]
+  effects?: SimpleEffect[]
 
   /**
    * Contains the module name

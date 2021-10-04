@@ -12,7 +12,7 @@ import {
 import React from 'react'
 import {
   action,
-  Effect,
+  SimpleEffect,
   reduce,
   selector,
   useActionEvent,
@@ -50,7 +50,7 @@ export type State = typeof state
 /**
  * Trigger the reached four checking
  */
-export const checkReachedFourEff: Effect =
+export const checkReachedFourEff: SimpleEffect =
   ({ dispatch }) =>
   ({ id }) => {
     dispatch(reachedFour(), id)
