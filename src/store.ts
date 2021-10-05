@@ -27,7 +27,7 @@ import {
  * a store
  */
 export type StoreOptions<S extends {} = {}, P = any> = {
-  modules: ReactiveModule<any, P, S>[]
+  modules: Array<ReactiveModule<any, P, S>>
   extensions: Array<StoreExtension<S, P>>
 }
 
@@ -87,7 +87,9 @@ export default class Store<S extends {} = {}> {
     await this.listen(action)
 
     try {
-      this.options.extensions.forEach(ex => ex(this, action, id))
+      return Promise.all(
+        this.options.extensions.map(ex => ex(this, action, id)),
+      )
     } catch (e) {
       // @TODO handle errors in a better way
       console.error(e)
