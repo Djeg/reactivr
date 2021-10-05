@@ -62,11 +62,11 @@ export const Render = ({
       setModuleState(newState)
     }
 
-    store.addActionListener(actionListener)
+    store.addActionListener(state, actionListener)
 
     return () => {
       setInitialized(false)
-      store.removeActionListener(actionListener)
+      store.removeActionListener(state, actionListener)
       store.destroyModule(state, moduleId)
     }
   }, [state])

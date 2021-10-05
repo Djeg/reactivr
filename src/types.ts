@@ -72,6 +72,13 @@ export type ActionListener<S extends {} = {}, P = any> = {
 }
 
 /**
+ * Define an action listener collector
+ */
+export type ActionListenerCollector<S extends {} = {}, P = any> = {
+  [index: symbol]: Array<ActionListener<S, P>>
+}
+
+/**
  * This is the shape of a ligh store
  */
 export type LightStore = {

@@ -10,7 +10,7 @@ import {
   removeModule,
 } from './reducer'
 import { select } from './selector'
-import { StoreExtension } from './types'
+import { StoreExtension, ActionListenerCollector } from './types'
 import {
   Action,
   ActionContainer,
@@ -44,7 +44,7 @@ export type StoreOptions<S extends {} = {}, P = any> = {
 export default class Store<S extends {} = {}> {
   private actions: ActionContainerCollector<any, any>
 
-  private listeners: Array<ActionListener<S, any>>
+  private listeners: ActionListenerCollector<S, any>
 
   private reducer: GlobalReducer<S, Action<any>>
 
@@ -60,7 +60,9 @@ export default class Store<S extends {} = {}> {
     this.actions = createActionContainerCollector(this.modules)
     this.reducer = createRootReducer(this.actions)
     this.state = initRootState(this.modules)
-    this.listeners = []
+    this.listeners = {}
+
+    this.buildActionListeners()
 
     this.dispatch.bind(this)
     this.initModule.bind(this)
@@ -171,6 +173,7 @@ export default class Store<S extends {} = {}> {
     this.actions = createActionContainerCollector(this.modules)
     this.reducer = createRootReducer(this.actions)
     this.state = mergeStates(this.state, initRootState(this.modules))
+    this.buildActionListeners()
   }
 
   /**
@@ -191,22 +194,51 @@ export default class Store<S extends {} = {}> {
     this.actions = createActionContainerCollector(this.modules)
     this.reducer = createRootReducer(this.actions)
     this.state = removeModule(mod, this.state)
+    this.buildActionListeners()
   }
 
   /**
    * Add an action listener
    */
-  public addActionListener<P = any>(listener: ActionListener<S, P>): void {
-    if (-1 === this.listeners.indexOf(listener)) {
-      this.listeners.push(listener)
+  public addActionListener<P = any>(
+    mod: symbol | ReactiveModule<any, any, any>,
+    listener: ActionListener<S, P>,
+  ): void {
+    let name = 'symbol' === typeof mod ? mod : mod.name
+
+    if (undefined === this.listeners[name])
+      throw new Error(`
+        Undefined module ${name.toString()}.
+
+        This error probably comes from a missing modules.
+        Please check if you have register your module
+        correcty into the Store options modules.
+      `)
+
+    if (-1 === this.listeners[name].indexOf(listener)) {
+      this.listeners[name].push(listener)
     }
   }
 
   /**
    * Remove an action listener
    */
-  public removeActionListener<P = any>(listener: ActionListener<S, P>): void {
-    this.listeners = this.listeners.filter(l => l !== listener)
+  public removeActionListener<P = any>(
+    mod: symbol | ReactiveModule<any, any, any>,
+    listener: ActionListener<S, P>,
+  ): void {
+    let name = 'symbol' === typeof mod ? mod : mod.name
+
+    if (undefined === this.listeners[name])
+      throw new Error(`
+        Undefined module ${name.toString()}.
+
+        This error probably comes from a missing modules.
+        Please check if you have register your module
+        correcty into the Store options modules.
+      `)
+
+    this.listeners[name] = this.listeners[name].filter(l => l !== listener)
   }
 
   /**
@@ -245,9 +277,17 @@ export default class Store<S extends {} = {}> {
    * Trigger all listeners
    */
   private async listen<P = any>(action: Action<P>): Promise<void> {
-    return Promise.all(
-      this.listeners.map(l => this.triggerActionListener(action, l(this))),
-    ).then(() => undefined)
+    let container = this.getActionContainer(action)
+
+    for (let name of Object.getOwnPropertySymbols(this.listeners)) {
+      if (name !== container.module?.name) continue
+
+      return Promise.all(
+        this.listeners[name].map(l =>
+          this.triggerActionListener(action, l(this)),
+        ),
+      ).then(() => undefined)
+    }
   }
 
   /**
@@ -281,6 +321,17 @@ export default class Store<S extends {} = {}> {
     return {
       modules: options.modules ?? [],
       extensions: options.extensions ?? [simpleEffectRunner],
+    }
+  }
+
+  /**
+   * Build actions listeners
+   */
+  private buildActionListeners() {
+    for (let mod of this.modules) {
+      if (undefined !== this.listeners[mod.name]) continue
+
+      this.listeners[mod.name] = []
     }
   }
 }

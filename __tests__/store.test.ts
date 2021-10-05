@@ -87,8 +87,8 @@ it('contains action listeners', async () => {
 
   store.initModule(Counter)
 
-  store.addActionListener(l1)
-  store.addActionListener(l2)
+  store.addActionListener(Counter, l1)
+  store.addActionListener(Counter, l2)
 
   await store.dispatch(Counter.increment())
   await store.dispatch(Counter.decrement())
@@ -102,8 +102,8 @@ it('contains action listeners', async () => {
 
   expect(counter).toBe(4)
 
-  store.removeActionListener(l1)
-  store.removeActionListener(l2)
+  store.removeActionListener(Counter, l1)
+  store.removeActionListener(Counter, l2)
 
   await store.dispatch(Counter.increment())
 
