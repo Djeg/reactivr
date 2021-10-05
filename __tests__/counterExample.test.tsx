@@ -1,9 +1,11 @@
 import React from 'react'
 import { act } from 'react-dom/test-utils'
-import { render, unmountComponentAtNode } from "react-dom"
+import { render, unmountComponentAtNode } from 'react-dom'
 import App from '../example/counter/App'
+import { ActionCollector } from '../src/test-utils/action-collector'
 
 let container: HTMLElement
+let actions: ActionCollector
 
 beforeEach(() => {
   container = document.createElement('main')
@@ -44,17 +46,13 @@ it('can increment and decrement the counter', () => {
     incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
 
-  expect(Number(
-    counter?.textContent
-  )).toBe(1)
+  expect(Number(counter?.textContent)).toBe(1)
 
   act(() => {
     decrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
 
-  expect(Number(
-    document.querySelector('.counter-amount')?.textContent
-  )).toBe(0)
+  expect(Number(document.querySelector('.counter-amount')?.textContent)).toBe(0)
 })
 
 it('handles effects', () => {
@@ -73,9 +71,7 @@ it('handles effects', () => {
     incrementBtn?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
 
-  expect(Number(
-    counter?.textContent
-  )).toBe(5)
+  expect(Number(counter?.textContent)).toBe(5)
 
   let reachedFour = document.querySelector('.reached-four')
 

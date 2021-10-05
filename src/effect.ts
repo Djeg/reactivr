@@ -1,16 +1,55 @@
 import Store from './store'
 import { DEFAULT_ID } from './actions'
-import { getSubjectSelectorName, LightStore } from './types'
+import { getSubjectSelectorName, LightStore, StoreExtension } from './types'
+
+/**
+ * Add the ability to run simple effect based on thunk
+ *
+ * @TODO Find a way to handle errors more efficiently
+ */
+export const simpleEffectRunner: StoreExtension<any, any> = (
+  store,
+  action,
+  id,
+) => {
+  let container = store.getActionContainer(action)
+  let lightStore = buildLightStore(store, id)
+
+  if (!container) return undefined
+
+  let effs = container.effects || []
+
+  let promises = effs
+    .map(eff => {
+      try {
+        const r: any = eff(lightStore)(id ? { ...action, id } : action)
+
+        if (r && r.then && r.catch) return r
+
+        return Promise.resolve(r)
+      } catch (e) {
+        Promise.reject(e)
+      }
+    })
+    // @TODO Handle error more efficiently
+    .map(p => p.catch(console.error))
+    .map(p => p.then(() => undefined))
+
+  return Promise.all(promises).then(() => undefined)
+}
 
 /**
  * Build a light store on top of a store
  */
-export const buildLightStore = (store: Store<any>): LightStore => {
-  const dispatch: LightStore['dispatch'] = (action, id = DEFAULT_ID) => {
+export const buildLightStore = (
+  store: Store<any>,
+  stateId: string = DEFAULT_ID,
+): LightStore => {
+  const dispatch: LightStore['dispatch'] = (action, id = stateId) => {
     store.dispatch(action, id)
   }
 
-  const selectModule: LightStore['selectModule'] = (mod, id = DEFAULT_ID) => {
+  const selectModule: LightStore['selectModule'] = (mod, id = stateId) => {
     const state = store.selectModule(mod, id)
 
     if (undefined === state)
@@ -28,7 +67,7 @@ export const buildLightStore = (store: Store<any>): LightStore => {
     return state
   }
 
-  const select: LightStore['select'] = (selector, id) => {
+  const select: LightStore['select'] = (selector, id = stateId) => {
     const state = store.select(selector, id)
 
     if (undefined === state)

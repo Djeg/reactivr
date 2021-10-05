@@ -8,7 +8,7 @@ import { DEFAULT_ID } from '../actions'
  */
 export type RenderProps<P extends {} = {}> = P & {
   state: ReactiveModule<P, any, any>
-  id?: string
+  stateId?: string
   children?: React.ReactNode
 }
 
@@ -21,13 +21,18 @@ export const RenderModuleIdContext = React.createContext<string>('')
 /**
  * Allow to render a reactive module
  */
-export const Render = ({ state, id, children, ...restProps }: RenderProps) => {
+export const Render = ({
+  state,
+  stateId,
+  children,
+  ...restProps
+}: RenderProps) => {
   const [initialized, setInitialized] = useState<boolean>(false)
   const [moduleState, setModuleState] = useState<typeof state.state>(
     state.state,
   )
   const store = useStore()
-  const moduleId = id ?? DEFAULT_ID
+  const moduleId = stateId ?? DEFAULT_ID
 
   useEffect(() => {
     store.initModule(state, moduleId)
@@ -57,11 +62,11 @@ export const Render = ({ state, id, children, ...restProps }: RenderProps) => {
       setModuleState(newState)
     }
 
-    store.addActionListener(actionListener)
+    store.addActionListener(state, actionListener)
 
     return () => {
       setInitialized(false)
-      store.removeActionListener(actionListener)
+      store.removeActionListener(state, actionListener)
       store.destroyModule(state, moduleId)
     }
   }, [state])

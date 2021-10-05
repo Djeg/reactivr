@@ -1,10 +1,8 @@
 import {
-  Action,
   ActionContainer,
   ActionContainerEnhancer,
   ActionReducer,
-  ReactiveModule,
-  Effect,
+  SimpleEffect,
 } from './types'
 
 /**
@@ -86,7 +84,9 @@ export function reduce<P = undefined, S extends {} = {}>(
 /**
  * Attach an effect to an action container
  */
-export function produce<P = undefined, S extends {} = {}>(effect: Effect) {
+export function produce<P = undefined, S extends {} = {}>(
+  effect: SimpleEffect,
+) {
   const produceEnhancer: ActionContainerEnhancer<P, S> = actionContainer => {
     actionContainer.effects?.push(effect)
 
