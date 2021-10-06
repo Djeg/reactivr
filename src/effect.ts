@@ -1,11 +1,10 @@
-import Store from './store'
 import { DEFAULT_ID } from './actions'
+import Store from './store'
 import {
-  getSubjectSelectorName,
   LightStore,
-  StoreExtension,
-  SelectorContainer,
   ReactiveModule,
+  SelectorContainer,
+  StoreExtension,
 } from './types'
 
 /**
