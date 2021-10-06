@@ -1,0 +1,12 @@
+*lock*
+node_modules
+*error.*
+src/
+coverage
+example/
+__tests__/
+.editorconfig
+.prettierrc
+.travis.yml
+.gitignore
+tsconfig.json
