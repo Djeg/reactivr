@@ -2,14 +2,28 @@
   "name": "reactivr",
   "version": "0.0.1",
   "description": "A react library for managing state and effects in a reactive way",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "repository": "https://github.com/Djeg/reactivr",
   "author": "David Jegat",
+  "keywords": [
+    "react",
+    "functional",
+    "reactive",
+    "redux",
+    "actions",
+    "state management",
+    "state",
+    "effect",
+    "side effect"
+  ],
   "license": "MIT",
   "private": false,
   "scripts": {
     "test": "jest --coverage",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

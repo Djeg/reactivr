@@ -1,5 +1,5 @@
 import { DEFAULT_ID } from './actions'
-import { buildLightStore, simpleEffectRunner } from './effect'
+import { simpleEffectRunner } from './effect'
 import {
   createActionContainerCollector,
   createRootReducer,
@@ -10,16 +10,17 @@ import {
   removeModule,
 } from './reducer'
 import { select } from './selector'
-import { StoreExtension, ActionListenerCollector } from './types'
 import {
   Action,
   ActionContainer,
   ActionContainerCollector,
   ActionListener,
+  ActionListenerCollector,
   GlobalReducer,
   ReactiveModule,
   SelectorContainer,
   StateCollector,
+  StoreExtension,
 } from './types'
 
 /**
