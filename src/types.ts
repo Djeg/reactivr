@@ -79,6 +79,15 @@ export type ActionListenerCollector<S extends {} = {}, P = any> = {
 }
 
 /**
+ * This object allows to specify what you wanna select
+ * from a store
+ */
+export type LightStoreSelector<S extends {} = {}, R = any> =
+  | ReactiveModule<any, any, S>
+  | symbol
+  | SelectorContainer<S, R>
+
+/**
  * This is the shape of a ligh store
  */
 export type LightStore = {
@@ -90,15 +99,10 @@ export type LightStore = {
   /**
    * Select the state of a module
    */
-  selectModule: <S extends {} = any>(
-    mod: ReactiveModule<any, any, S>,
+  select: <S extends {} = any, R = any>(
+    selector: LightStoreSelector<S, R>,
     id?: string,
   ) => S
-
-  /**
-   * Select a state from a selector
-   */
-  select: <R = any>(selector: SelectorContainer<any, R>, id?: string) => R
 }
 
 /**

@@ -7,7 +7,14 @@ import {
   eventStopPropagation,
   eventTargetValue,
 } from './react/helpers'
-import { useActionEvent, useModule, useSelector, useStore } from './react/hooks'
+import {
+  useActionEvent,
+  useForeignActionEvent,
+  useLifecycleAction,
+  useModule,
+  useSelector,
+  useStore,
+} from './react/hooks'
 import { Provider, StoreContext } from './react/Provider'
 import { Render } from './react/Render'
 import { select, selector } from './selector'
@@ -62,6 +69,8 @@ export {
   createStore,
   Render,
   useActionEvent,
+  useForeignActionEvent,
+  useLifecycleAction,
   useStore,
   pipe,
   compose,

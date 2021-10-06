@@ -49,9 +49,12 @@
       "json",
       "node"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testPathIgnorePatterns": [
+      "<rootDir>/dist"
+    ]
   },
   "dependencies": {
-    "react": "^17.0.2"
+    "react": ">=16.1.0"
   }
 }
