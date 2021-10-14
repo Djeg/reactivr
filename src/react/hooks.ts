@@ -1,10 +1,11 @@
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { DEFAULT_ID } from '../actions'
 import { pipe } from '../functions/pipe'
 import Store from '../store'
 import {
   Action,
   ActionContainer,
+  LightStoreSelector,
   ReactiveModule,
   SelectorContainer,
 } from '../types'
@@ -240,14 +241,52 @@ export function useForeignActionEvent<P = any, E = Element>(
  * Select a state part by giving it a selector
  */
 export function useSelector<R = any>(
-  selector: SelectorContainer<any, R>,
+  selector: LightStoreSelector<any, R>,
   id: string = DEFAULT_ID,
 ): R | undefined {
   const store = useStore()
 
-  const result = store.select<R>(selector, id)
+  const selectState = () => {
+    if ('symbol' === typeof selector) {
+      let allState = store.getState()
+      return allState[selector][id] as unknown as R
+    }
 
-  return result
+    if (
+      'object' === typeof selector &&
+      selector.__kind__ &&
+      selector.__kind__ === 'selector'
+    ) {
+      return store.select(selector as unknown as SelectorContainer<any>, id)
+    }
+
+    return store.selectModule(
+      selector as unknown as ReactiveModule<any, any, any>,
+    )
+  }
+
+  const [state, setState] = useState<R>(selectState())
+
+  useEffect(() => {
+    let mod =
+      'symbol' === typeof selector
+        ? selector
+        : 'object' === typeof selector && selector.__kind__
+        ? (selector as unknown as SelectorContainer<any>).subject
+        : selector
+
+    let listener = () => () => {
+      setState(selectState())
+    }
+
+    store.addActionListener(mod, listener)
+
+    return () => {
+      store.removeActionListener(mod, listener)
+    }
+  }, [])
+
+  return state
 }
 
 /**
