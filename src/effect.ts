@@ -1,5 +1,6 @@
 import { DEFAULT_ID } from './actions'
 import Store from './store'
+import { isSymbol, isSelectorContainer, isReactiveModule } from './types'
 import {
   LightStore,
   ReactiveModule,
@@ -57,20 +58,17 @@ export const buildLightStore = (
   const select: LightStore['select'] = (selector, id = stateId) => {
     let state = null
 
-    if ('symbol' === typeof selector) {
+    if (isSymbol(selector)) {
       let allState = store.getState()
       state = allState[selector][id]
-    } else if (
-      'object' === typeof selector &&
-      selector.__kind__ &&
-      selector.__kind__ === 'selector'
-    ) {
+    }
+
+    if (isSelectorContainer(selector)) {
       state = store.select(selector as unknown as SelectorContainer<any>, id)
-    } else {
-      state = store.selectModule(
-        selector as unknown as ReactiveModule<any, any, any>,
-        id,
-      )
+    }
+
+    if (isReactiveModule(selector)) {
+      state = store.selectModule(selector, id)
     }
 
     if (undefined === state)

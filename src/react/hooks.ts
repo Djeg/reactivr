@@ -5,9 +5,11 @@ import Store from '../store'
 import {
   Action,
   ActionContainer,
+  getLightSelectorModuleName,
+  isSelectorContainer,
+  isSymbol,
   LightStoreSelector,
   ReactiveModule,
-  SelectorContainer,
 } from '../types'
 import { StoreContext } from './Provider'
 import { RenderModuleIdContext } from './Render'
@@ -247,17 +249,14 @@ export function useSelector<R = any>(
   const store = useStore()
 
   const selectState = () => {
-    if ('symbol' === typeof selector) {
+    if (isSymbol(selector)) {
       let allState = store.getState()
+
       return allState[selector][id] as unknown as R
     }
 
-    if (
-      'object' === typeof selector &&
-      selector.__kind__ &&
-      selector.__kind__ === 'selector'
-    ) {
-      return store.select(selector as unknown as SelectorContainer<any>, id)
+    if (isSelectorContainer(selector)) {
+      return store.select(selector, id)
     }
 
     return store.selectModule(
@@ -268,12 +267,7 @@ export function useSelector<R = any>(
   const [state, setState] = useState<R>(selectState())
 
   useEffect(() => {
-    let mod =
-      'symbol' === typeof selector
-        ? selector
-        : 'object' === typeof selector && selector.__kind__
-        ? (selector as unknown as SelectorContainer<any>).subject
-        : selector
+    let mod = getLightSelectorModuleName(selector)
 
     let listener = () => () => {
       setState(selectState())
@@ -287,20 +281,6 @@ export function useSelector<R = any>(
   }, [])
 
   return state
-}
-
-/**
- * Select an entire module state
- */
-export function useModule<S extends {} = any>(
-  mod: ReactiveModule<any, any, S>,
-  id: string = DEFAULT_ID,
-): S | undefined {
-  const store = useStore()
-
-  const data = store.selectModule<S>(mod, id)
-
-  return data
 }
 
 /**
@@ -344,5 +324,35 @@ export const useLifecycleAction = <P1 = undefined, P2 = undefined>(
       return () => {
         dispatch(destroyAction)
       }
+  }, [])
+}
+
+/**
+ * Allows a component to use an action that will be triggered
+ * during the component first render.
+ */
+export const useInitAction = <S extends {} = any>(
+  action: ActionContainer<undefined, S>,
+) => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(action())
+  }, [])
+}
+
+/**
+ * Allows a component to use an action that will be triggered
+ * when the component will unmount
+ */
+export const useFinalAction = <S extends {} = any>(
+  container: ActionContainer<undefined, S>,
+) => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    return () => {
+      dispatch(container())
+    }
   }, [])
 }

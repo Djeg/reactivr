@@ -263,9 +263,9 @@ export function isActionContainer(
 /**
  * Test if a member is a seletor container
  */
-export function isSelectorContainer(
-  container: SelectorContainer<any, any> | any,
-): container is SelectorContainer<any, any> {
+export function isSelectorContainer<S extends {} = {}, R = any>(
+  container: SelectorContainer<S, R> | any,
+): container is SelectorContainer<S, R> {
   return 'function' === typeof container && container['__kind__'] === 'selector'
 }
 
@@ -285,4 +285,46 @@ export function getSubjectSelectorName<S extends {} = {}>(
   selector: SelectorSubject<S>,
 ): symbol {
   return isSymbolSubjectSelector(selector) ? selector : selector.name
+}
+
+/**
+ * Test if a light store selector is a symbol
+ */
+export function isSymbol(a: any): a is symbol {
+  return 'symbol' === typeof a
+}
+
+/**
+ * Test if a subject is a reactive module
+ */
+export function isReactiveModule<
+  A extends {} = any,
+  B = any,
+  C extends {} = {},
+>(m: any): m is ReactiveModule<A, B, C> {
+  return (
+    'object' === typeof m &&
+    m.name !== undefined &&
+    'symbol' === typeof m.name &&
+    m.state !== undefined &&
+    'object' === typeof m.state
+  )
+}
+
+/**
+ * Retrieve the module name of a light store
+ * selector
+ */
+export function getLightSelectorModuleName<S extends {} = {}, R = any>(
+  s: LightStoreSelector<S, R>,
+): symbol {
+  if (isSymbol(s)) {
+    return s
+  }
+
+  if (isSelectorContainer(s)) {
+    return 'symbol' === typeof s.subject ? s.subject : s.subject.name
+  }
+
+  return (s as unknown as ReactiveModule<any, any, S>).name
 }
