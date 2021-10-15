@@ -9,9 +9,10 @@ import {
 } from './react/helpers'
 import {
   useActionEvent,
+  useFinalAction,
   useForeignActionEvent,
+  useInitAction,
   useLifecycleAction,
-  useModule,
   useSelector,
   useStore,
 } from './react/hooks'
@@ -75,7 +76,8 @@ export {
   pipe,
   compose,
   useSelector,
-  useModule,
+  useInitAction,
+  useFinalAction,
   eventStopPropagation,
   eventPreventDefault,
   eventTargetValue,
