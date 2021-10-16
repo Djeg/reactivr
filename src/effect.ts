@@ -1,9 +1,10 @@
 import { DEFAULT_ID } from './actions'
 import Store from './store'
-import { isSymbol, isSelectorContainer, isReactiveModule } from './types'
 import {
+  isReactiveModule,
+  isSelectorContainer,
+  isSymbol,
   LightStore,
-  ReactiveModule,
   SelectorContainer,
   StoreExtension,
 } from './types'
