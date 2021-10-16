@@ -1,6 +1,5 @@
 import Store, { createStore, StoreOptions } from '../store'
 import { ActionCollector } from './action-collector'
-import { ReactiveModule, Action, SelectorContainer } from '../types'
 
 /**
  * Create a testing store wich doesn't contains any extensions
