@@ -6,10 +6,7 @@ import {
   Action,
   ActionContainer,
   getLightSelectorModuleName,
-  isSelectorContainer,
-  isSymbol,
   LightStoreSelector,
-  ReactiveModule,
 } from '../types'
 import { StoreContext } from './Provider'
 import { RenderModuleIdContext } from './Render'
@@ -248,29 +245,15 @@ export function useSelector<R = any>(
 ): R | undefined {
   const store = useStore()
 
-  const selectState = () => {
-    if (isSymbol(selector)) {
-      let allState = store.getState()
-
-      return allState[selector][id] as unknown as R
-    }
-
-    if (isSelectorContainer(selector)) {
-      return store.select(selector, id)
-    }
-
-    return store.selectModule(
-      selector as unknown as ReactiveModule<any, any, any>,
-    )
-  }
-
-  const [state, setState] = useState<R>(selectState())
+  const [state, setState] = useState<R>(
+    store.select(selector, id) as unknown as R,
+  )
 
   useEffect(() => {
     let mod = getLightSelectorModuleName(selector)
 
     let listener = () => () => {
-      setState(selectState())
+      setState(store.select(selector, id) as unknown as R)
     }
 
     store.addActionListener(mod, listener)
