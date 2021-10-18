@@ -6,10 +6,7 @@ import {
   Action,
   ActionContainer,
   getLightSelectorModuleName,
-  isSelectorContainer,
-  isSymbol,
   LightStoreSelector,
-  ReactiveModule,
 } from '../types'
 import { StoreContext } from './Provider'
 import { RenderModuleIdContext } from './Render'

@@ -10,12 +10,6 @@ import {
   removeModule,
 } from './reducer'
 import { select } from './selector'
-import { isSymbol } from './types'
-import {
-  LightStoreSelector,
-  isSelectorContainer,
-  SelectorSubject,
-} from './types'
 import {
   Action,
   ActionContainer,
@@ -23,8 +17,11 @@ import {
   ActionListener,
   ActionListenerCollector,
   GlobalReducer,
+  isSelectorContainer,
+  isSymbol,
+  LightStoreSelector,
   ReactiveModule,
-  SelectorContainer,
+  SelectorSubject,
   StateCollector,
   StoreExtension,
 } from './types'
