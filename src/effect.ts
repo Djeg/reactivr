@@ -69,7 +69,7 @@ export const buildLightStore = (
     }
 
     if (isReactiveModule(selector)) {
-      state = store.selectModule(selector, id)
+      state = store.select(selector, id)
     }
 
     if (undefined === state)

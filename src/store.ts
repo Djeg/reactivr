@@ -10,6 +10,12 @@ import {
   removeModule,
 } from './reducer'
 import { select } from './selector'
+import { isSymbol } from './types'
+import {
+  LightStoreSelector,
+  isSelectorContainer,
+  SelectorSubject,
+} from './types'
 import {
   Action,
   ActionContainer,
@@ -129,31 +135,53 @@ export default class Store<S extends {} = {}> {
   }
 
   /**
-   * Return the state for the given module
-   */
-  public selectModule<S extends {} = {}>(
-    mod: ReactiveModule<any, any, S>,
-    id: string = DEFAULT_ID,
-  ): S | undefined {
-    let container = this.state[mod.name]
-
-    if (!container) return undefined
-
-    let state = container[id]
-
-    if (!state) return undefined
-
-    return state as unknown as S
-  }
-
-  /**
    * Select a given state
    */
   public select<R = undefined>(
-    selector: SelectorContainer<any, R>,
+    selector: LightStoreSelector<any, R>,
     id: string = DEFAULT_ID,
   ): R | undefined {
-    return select(selector, id)(this.state)
+    if (isSelectorContainer(selector)) {
+      let state = select(selector, id)(this.state)
+
+      return undefined === state
+        ? this.getInitialState(selector.subject)
+        : state
+    }
+
+    if (isSymbol(selector)) {
+      let state = this.state[selector]
+
+      if (undefined === state)
+        return this.getInitialState(selector) as unknown as R
+
+      let subState = state[id]
+
+      return undefined === subState
+        ? (this.getInitialState(selector) as unknown as R)
+        : (subState as unknown as R)
+    }
+
+    let modName = selector.name as symbol
+
+    if (!modName)
+      throw new Error(`
+        Unable to find the module name.
+        
+        You probably forgot to export the name
+        property inside your reactive module.
+      `)
+
+    let state = this.state[modName]
+
+    if (undefined === state)
+      return this.getInitialState(modName) as unknown as R
+
+    let subState = state[id]
+
+    return undefined === subState
+      ? (this.getInitialState(modName) as unknown as R)
+      : (subState as unknown as R)
   }
 
   /**
@@ -334,6 +362,26 @@ export default class Store<S extends {} = {}> {
 
       this.listeners[mod.name] = []
     }
+  }
+
+  /**
+   * Retrieve the initial state of a module
+   */
+  private getInitialState(name: SelectorSubject<any>) {
+    let modName = 'symbol' === typeof name ? name : name?.name
+
+    let mod = this.modules.find(mod => mod.name === modName)
+
+    if (mod === undefined)
+      throw new Error(`
+        Unable to retrieve the initial state of ${modName.toString()}.
+
+        This is probably due to a missing module
+        inside the provide store. Make sure you have
+        includes the module inside the provider store.
+      `)
+
+    return mod.state
   }
 }
 

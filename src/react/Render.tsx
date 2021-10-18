@@ -37,10 +37,7 @@ export const Render = ({
   useEffect(() => {
     store.initModule(state, moduleId)
 
-    const retrievedState = store.selectModule<typeof state.state>(
-      state,
-      moduleId,
-    )
+    const retrievedState = store.select<typeof state.state>(state, moduleId)
 
     if (undefined === retrievedState)
       throw new Error(`
@@ -57,7 +54,7 @@ export const Render = ({
     setInitialized(true)
 
     const actionListener = () => () => {
-      const newState = store.selectModule<typeof state.state>(state, moduleId)
+      const newState = store.select<typeof state.state>(state, moduleId)
 
       setModuleState(newState)
     }
